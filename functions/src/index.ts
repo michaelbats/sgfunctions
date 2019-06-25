@@ -1,24 +1,35 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
+admin.initializeApp();
 
-export const setAuthorClaims = functions.https.onRequest(
-  (request, response) => {
-    async function grantAuthorRole(email: string) {
-      const user = await admin.auth().getUserByEmail(email);
-      if (user.customClaims && (user.customClaims as any).author === true) {
-        return;
-      } else {
-        return admin.auth().setCustomUserClaims(user.uid, {
-          author: true
-        });
-      }
-    }
+export const addAuthor = functions
+  .region('europe-west1')
+  .https.onCall((data, context) => {
+    return grantAuthorRole(data.email).then(() => {
+      return { result: 'Added author claims to ' + data.email };
+    });
+    // if (context.auth) {
+    //   if (context.auth.token.owner !== true) {
+    //     return { error: 'Request not authorized. User must be owner.' };
+    //   } else {
+    //     const email = data.email;
+    //     return grantAuthorRole(email).then(() => {
+    //       return { result: 'Added author claims to ' + email };
+    //     });
+    //   }
+    // } else {
+    //   return { error: 401 };
+    // }
+  });
+
+async function grantAuthorRole(email: string): Promise<void> {
+  const user = await admin.auth().getUserByEmail(email);
+  if (user.customClaims && (user.customClaims as any).author === true) {
+    return;
+  } else {
+    return admin.auth().setCustomUserClaims(user.uid, {
+      owner: true
+    });
   }
-);
+}
