@@ -6,9 +6,15 @@ admin.initializeApp();
 export const addAuthor = functions
   .region('europe-west1')
   .https.onCall((data, context) => {
-    return grantAuthorRole(data.email).then(() => {
-      return { result: 'Added author claims to ' + data.email };
-    });
+    return grantAuthorRole(data.email)
+      .then(() => {
+        console.log('IN THE CALLBACK OF GRANT AUTHOR ROLE');
+        return { result: 'Added author claims to ' + data.email };
+      })
+      .catch(error => {
+        console.log(error);
+        return { error };
+      });
     // if (context.auth) {
     //   if (context.auth.token.owner !== true) {
     //     return { error: 'Request not authorized. User must be owner.' };
@@ -25,7 +31,7 @@ export const addAuthor = functions
 
 async function grantAuthorRole(email: string): Promise<void> {
   const user = await admin.auth().getUserByEmail(email);
-
+  console.log(user);
   return admin.auth().setCustomUserClaims(user.uid, {
     owner: true
   });
