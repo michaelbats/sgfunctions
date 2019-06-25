@@ -25,11 +25,8 @@ export const addAuthor = functions
 
 async function grantAuthorRole(email: string): Promise<void> {
   const user = await admin.auth().getUserByEmail(email);
-  if (user.customClaims && (user.customClaims as any).author === true) {
-    return;
-  } else {
-    return admin.auth().setCustomUserClaims(user.uid, {
-      owner: true
-    });
-  }
+
+  return admin.auth().setCustomUserClaims(user.uid, {
+    owner: true
+  });
 }
